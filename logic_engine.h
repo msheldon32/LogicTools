@@ -13,15 +13,15 @@ public:
 	bool truth_value;
 	char symbol;
 
-	ElementaryProposition(char init_symbol, bool init_truth_value, ElementaryProposition *init_next=nullptr);
+	ElementaryProposition(char init_symbol, bool init_truth_value, ElementaryProposition* init_next=nullptr);
 	~ElementaryProposition();
 
-	bool get_value_from_symbol(char search_symbol);
-	bool find_symbol_in_list(char search_symbol);
-	ElementaryProposition **lattice();
-	ElementaryProposition *copy();
+	bool GetValueFromSymbol(char search_symbol);
+	bool FindSymbol(char search_symbol);
+	ElementaryProposition** Lattice();
+	ElementaryProposition* Copy();
 
-	void merge_list(ElementaryProposition *new_list);
+	void MergeList(ElementaryProposition* new_list);
 };
 
 class LogicNode {
@@ -31,20 +31,21 @@ class LogicNode {
 	 */
 private:
 	char symbol;
-	LogicNode *left, *right;
+	LogicNode* left;
+	LogicNode* right;
 public:
 	LogicNode(char init_symbol);
 	~LogicNode();
 
-	void set_left(LogicNode *init_left);
-	void set_right(LogicNode *init_right);
+	void SetLeft(LogicNode* init_left);
+	void SetRight(LogicNode* init_right);
 
-	bool evaluate(ElementaryProposition *first_prop);
+	LogicNode* GetLeft();
+	LogicNode* GetRight();
 
-	char get_symbol();
+	char GetSymbol();
 
-	LogicNode *get_left();
-	LogicNode *get_right();
+	bool Evaluate(ElementaryProposition* first_prop);
 };
 
 #endif

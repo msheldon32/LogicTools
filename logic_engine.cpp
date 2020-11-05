@@ -9,7 +9,7 @@
 #include "logic_engine.h"
 
 
-ElementaryProposition::ElementaryProposition(char init_symbol, bool init_truth_value, ElementaryProposition *init_next) {
+ElementaryProposition::ElementaryProposition(char init_symbol, bool init_truth_value, ElementaryProposition* init_next) {
 	if (std::strchr("+*~", init_symbol) != nullptr) {
 		throw "Reserved Character as Proposition!";
 	}
@@ -23,7 +23,7 @@ ElementaryProposition::~ElementaryProposition() {
 	delete next;
 }
 
-bool ElementaryProposition::get_value_from_symbol(char search_symbol) {
+bool ElementaryProposition::GetValueFromSymbol(char search_symbol) {
 	/*
 	 *   Searches through the linked list to find the truth value
 	 *   	corresponding to the given symbol.
@@ -32,10 +32,10 @@ bool ElementaryProposition::get_value_from_symbol(char search_symbol) {
 		return truth_value;
 	}
 
-	return next->get_value_from_symbol(search_symbol);
+	return next->GetValueFromSymbol(search_symbol);
 }
 
-bool ElementaryProposition::find_symbol_in_list(char search_symbol) {
+bool ElementaryProposition::FindSymbol(char search_symbol) {
 	/*
 	 *   Searches through the linked list to see if the given symbol
 	 *   	corresponds to a proposition.
@@ -46,26 +46,26 @@ bool ElementaryProposition::find_symbol_in_list(char search_symbol) {
 		return false;
 	}
 
-	return next->find_symbol_in_list(search_symbol);
+	return next->FindSymbol(search_symbol);
 }
 
-ElementaryProposition *ElementaryProposition::copy() {
+ElementaryProposition* ElementaryProposition::Copy() {
 	/*
 	 *   Recursively copies every elementary proposition.
 	 */
 	if (next == nullptr) {
 		return new ElementaryProposition(symbol, truth_value);
 	}
-	return new ElementaryProposition(symbol, truth_value, next->copy());
+	return new ElementaryProposition(symbol, truth_value, next->Copy());
 }
 
-ElementaryProposition **ElementaryProposition::lattice() {
+ElementaryProposition** ElementaryProposition::Lattice() {
 	/*
 	 *   Returns an array of ElementaryProposition objects, 
 	 * 	containing every possible truth value for every proposition.
 	 */
 	if (next == nullptr) {
-		ElementaryProposition **out_array = new ElementaryProposition *[2];
+		ElementaryProposition** out_array = new ElementaryProposition *[2];
 		out_array[0] = new ElementaryProposition(symbol, false);
 		out_array[1] = new ElementaryProposition(symbol, true);
 		out_array[2] = nullptr;
@@ -73,31 +73,30 @@ ElementaryProposition **ElementaryProposition::lattice() {
 	}
 
 	// get the lattice of the following element
-	ElementaryProposition **next_lattice = next->lattice();
+	ElementaryProposition** next_lattice = next->Lattice();
 
 	// find it's depth
 	int cur_lattice_depth = 0;
 	
 
-	for (ElementaryProposition **nl_iter = next_lattice; (*nl_iter) != nullptr; nl_iter++) {
+	for (ElementaryProposition** nl_iter = next_lattice; (*nl_iter) != nullptr; nl_iter++) {
 		cur_lattice_depth++;
 	}
 
 	// duplicate this lattice, one copy with the current proposition as false, and the other 
 	//    with it as true
-	ElementaryProposition **out_array = new ElementaryProposition *[(cur_lattice_depth*2)+1];
+	ElementaryProposition** out_array = new ElementaryProposition* [(cur_lattice_depth*2)+1];
 	out_array[(cur_lattice_depth*2)] = nullptr;
 	int midpoint = cur_lattice_depth;
 	for (int i = 0; i < cur_lattice_depth; i++) {
-		next_lattice[i]->copy();
-		out_array[i] = new ElementaryProposition(symbol, false, next_lattice[i]->copy());
-		out_array[midpoint+i] = new ElementaryProposition(symbol, true, next_lattice[i]->copy());
+		out_array[i] = new ElementaryProposition(symbol, false, next_lattice[i]->Copy());
+		out_array[midpoint+i] = new ElementaryProposition(symbol, true, next_lattice[i]->Copy());
 	}
 
 	return out_array;
 }
 
-void ElementaryProposition::merge_list(ElementaryProposition *new_list) {
+void ElementaryProposition::MergeList(ElementaryProposition* new_list) {
 	/*
 	 *   Merge two ElementaryProposition lists. 
 	 *   NOTE: ignores truth values, merges on symbols only.
@@ -112,7 +111,7 @@ void ElementaryProposition::merge_list(ElementaryProposition *new_list) {
 	}
 
 	// ...as well as any subsequent elements
-	ElementaryProposition *cursor = new_list;
+	ElementaryProposition* cursor = new_list;
 
 	while (cursor->next != nullptr) {
 		if (cursor->next->symbol == symbol) {
@@ -126,7 +125,7 @@ void ElementaryProposition::merge_list(ElementaryProposition *new_list) {
 	if (next == nullptr) {
 		next = new_list;
 	} else {
-		next->merge_list(new_list);
+		next->MergeList(new_list);
 	}
 }
 
@@ -145,29 +144,41 @@ LogicNode::~LogicNode() {
 	}
 }
 
-void LogicNode::set_left(LogicNode *init_left) {
+void LogicNode::SetLeft(LogicNode* init_left) {
 	left = init_left;
 }
 
-void LogicNode::set_right(LogicNode *init_right) {
+void LogicNode::SetRight(LogicNode* init_right) {
 	right = init_right;
 }
 
-bool LogicNode::evaluate(ElementaryProposition *first_prop) {
+LogicNode* LogicNode::GetLeft() {
+	return left;
+}
+
+LogicNode* LogicNode::GetRight() {
+	return right;
+}
+
+char LogicNode::GetSymbol() {
+	return symbol;
+}
+
+bool LogicNode::Evaluate(ElementaryProposition* first_prop) {
 	/*
 	 *   Recursively evaluate each node in the tree, accoridng to the truth values
 	 *   	supplied by first_prop, and it's successors.
 	 */
 
-	if (first_prop->find_symbol_in_list(symbol)) {
+	if (first_prop->FindSymbol(symbol)) {
 		// symbol represents an elementary proposition
-		return first_prop->get_value_from_symbol(symbol);
+		return first_prop->FindSymbol(symbol);
 	}
-	bool bleft  = left->evaluate(first_prop);
+	bool bleft  = left->Evaluate(first_prop);
 
 	bool bright = false;
 	if (right != nullptr) {
-		bright = right->evaluate(first_prop);
+		bright = right->Evaluate(first_prop);
 	}
 
 
@@ -184,16 +195,4 @@ bool LogicNode::evaluate(ElementaryProposition *first_prop) {
 
 	// throw an exception. symbol is not recognized.
 	throw "Unrecognized symbol";
-}
-
-char LogicNode::get_symbol() {
-	return symbol;
-}
-
-LogicNode *LogicNode::get_left() {
-	return left;
-}
-
-LogicNode *LogicNode::get_right() {
-	return right;
 }

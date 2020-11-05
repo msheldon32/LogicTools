@@ -3,7 +3,7 @@
 
 #include "logic_engine.h"
 
-LogicNode *parse_string(char *input_string);
-ElementaryProposition *get_propositions(LogicNode *logic_tree);
+LogicNode* ParseString(char* input_string);
+ElementaryProposition* GetPropositions(LogicNode* logic_tree);
 
 #endif

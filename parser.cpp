@@ -5,15 +5,23 @@
 #include "logic_engine.h"
 
 // constants
-char const *WHITESPACE_CHARACTERS = " \n\t\r";
+char const* WHITESPACE_CHARACTERS = " \n\t\r";
 
-void remove_char(char *input_string, int loc) {
+void RemoveChar(char* input_string, int loc) {
+	/*
+	 *  Removes a character from a string at a given location.
+	 */
 	for (int i = loc; i < (int) std::strlen(input_string); i++) {
 		input_string[i] = input_string[i+1];
 	}
 }
 
-bool has_superfluous_parentheses(char *input_string) {
+bool HasSuperfluousParentheses(char* input_string) {
+	/*
+	 *  Check if a given string is surrounded by at least one pair of
+	 *    superfluous parentheses. Assumes that any whitespace or other
+	 *    irrelevant characters have already been removed.
+	 */
 	int string_length = std::strlen(input_string);
 	if (input_string[0] != '(') {
 		return false;
@@ -35,35 +43,47 @@ bool has_superfluous_parentheses(char *input_string) {
 	return true;
 }
 
-void strip_input(char *input_string) {
-	// remove any whitespace...
+void StripInput(char* input_string) {
+	/*
+	 *  Remove any whitespace or superfluous parenthesis from the given input string.
+	 */
 	int string_length = std::strlen(input_string);
 	for (int i = 0; i < string_length; i++) {
 		if (std::strchr(WHITESPACE_CHARACTERS, input_string[i]) != nullptr) {
-			remove_char(input_string, i);
+			RemoveChar(input_string, i);
 			i--;
 			string_length--;
 		}
 	}
 
-	// ... and superfluous parentheses
-	while (has_superfluous_parentheses(input_string)) {
-		remove_char(input_string, string_length-1);
-		remove_char(input_string, 0);
+	while (HasSuperfluousParentheses(input_string)) {
+		/*
+		 *  Delete first and last characters (presumably parenthesis).
+		 */
+		RemoveChar(input_string, string_length-1);
+		RemoveChar(input_string, 0);
 		string_length-=2;
 	}
 }
 
-void regularize(char *input_string) {
-	strip_input(input_string);
+void Regularize(char* input_string) {
+	/*
+	 *  Regularize the input string.
+	 *
+	 *  At the moment, this just calss strip_input.
+	 */ 
+	StripInput(input_string);
 }
 
-LogicNode *parse_string(char *input_string) {
+LogicNode* ParseString(char* input_string) {
+	/*
+	 *  Transforms input_string into a tree of LogicNodes
+	 */
 	int input_str_len = std::strlen(input_string);
 
-	regularize(input_string);
+	Regularize(input_string);
 
-	LogicNode *out_node;
+	LogicNode* out_node;
 
 	// check if we have an elementary proposition
 	if (input_str_len == 1) {
@@ -102,35 +122,40 @@ LogicNode *parse_string(char *input_string) {
 		if (input_string[0] == '~') {
 			out_node = new LogicNode('~');
 			input_string++;
-			out_node->set_left(parse_string(input_string));
+			out_node->SetLeft(ParseString(input_string));
 			return out_node;
 		}
 	}
 
-	char *left_string  = new char[pivot_location+1];
-	char *right_string = new char[(input_str_len-pivot_location)];
+	char* left_string  = new char[pivot_location+1];
+	char* right_string = new char[(input_str_len-pivot_location)];
 	std::strncpy(left_string, input_string, pivot_location);
 	std::strncpy(right_string, input_string+pivot_location+1, input_str_len-pivot_location-1);
+
 	// null terminate
 	left_string[pivot_location] = '\0';
 	right_string[(input_str_len-pivot_location-1)] = '\0';
 
 	out_node = new LogicNode(input_string[pivot_location]);
-	out_node->set_left(parse_string(left_string));
-	out_node->set_right(parse_string(right_string));
+	out_node->SetLeft(ParseString(left_string));
+	out_node->SetRight(ParseString(right_string));
 
 	return out_node;
 }
 
-ElementaryProposition *get_propositions(LogicNode *logic_tree) {
-	if (std::strchr("+*~", logic_tree->get_symbol()) != nullptr) {
-		ElementaryProposition *left_list  = get_propositions(logic_tree->get_left());
-		if (logic_tree->get_right() != nullptr) {
-			ElementaryProposition *right_left = get_propositions(logic_tree->get_right());
-			left_list->merge_list(right_left);
+ElementaryProposition* GetPropositions(LogicNode* logic_tree) {
+	/*
+	 *  Extracts any symbols representing a proposition,
+	 *    and creates ElementaryProposition objects from these.
+	 */
+	if (std::strchr("+*~", logic_tree->GetSymbol()) != nullptr) {
+		ElementaryProposition* left_list  = GetPropositions(logic_tree->GetLeft());
+		if (logic_tree->GetRight() != nullptr) {
+			ElementaryProposition *right_left = GetPropositions(logic_tree->GetRight());
+			left_list->MergeList(right_left);
 		}
 		return left_list;
 	}
 
-	return new ElementaryProposition(logic_tree->get_symbol(), false);
+	return new ElementaryProposition(logic_tree->GetSymbol(), false);
 }
