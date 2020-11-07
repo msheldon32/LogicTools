@@ -154,8 +154,13 @@ ElementaryProposition* GetPropositions(LogicNode* logic_tree) {
 			ElementaryProposition *right_left = GetPropositions(logic_tree->GetRight());
 			left_list->MergeList(right_left);
 		}
+
 		return left_list;
 	}
 
-	return new ElementaryProposition(logic_tree->GetSymbol(), false);
+	char symbol = logic_tree->GetSymbol();
+	if ((symbol == '1') || (symbol == '0')) {
+		return nullptr;
+	}
+	return new ElementaryProposition(symbol, false);
 }

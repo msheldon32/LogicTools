@@ -5,13 +5,14 @@
 
 #include <cstring>
 #include <iostream>
+#include <stdexcept>
 
 #include "logic_engine.h"
 
 
 ElementaryProposition::ElementaryProposition(char init_symbol, bool init_truth_value, ElementaryProposition* init_next) {
-	if (std::strchr("+*~", init_symbol) != nullptr) {
-		throw "Reserved Character as Proposition!";
+	if (std::strchr("+*~01", init_symbol) != nullptr) {
+		throw std::invalid_argument("Reserved Symbol Used in Proposition");
 	}
 
 	symbol = init_symbol;
@@ -169,6 +170,12 @@ bool LogicNode::Evaluate(ElementaryProposition* first_prop) {
 	 *   Recursively evaluate each node in the tree, accoridng to the truth values
 	 *   	supplied by first_prop, and it's successors.
 	 */
+	if (symbol == '0') {
+		return false;
+	} else if (symbol == '1') {
+		return true;
+	}
+
 
 	if (first_prop->FindSymbol(symbol)) {
 		// symbol represents an elementary proposition
@@ -195,4 +202,99 @@ bool LogicNode::Evaluate(ElementaryProposition* first_prop) {
 
 	// throw an exception. symbol is not recognized.
 	throw "Unrecognized symbol";
+}
+
+LogicNode* LogicNode::DemorganDual() {
+	/*
+	 *   Finds the demorgan dual of the current node, if one exists
+	 */
+	if (symbol == '~') {
+		if (left->symbol == '+') {
+			LogicNode* return_node = new LogicNode('*');
+			LogicNode* return_node_left  = new LogicNode('~');
+			LogicNode* return_node_right = new LogicNode('~');
+			return_node_left->SetLeft(left->GetLeft());
+			return_node_right->SetLeft(left->GetRight());
+			return_node->SetLeft(return_node_left);
+			return_node->SetRight(return_node_right);
+			return return_node;
+		} else if (left->symbol == '*') {
+			LogicNode* return_node = new LogicNode('+');
+			LogicNode* return_node_left  = new LogicNode('~');
+			LogicNode* return_node_right = new LogicNode('~');
+			return_node_left->SetLeft(left->GetLeft());
+			return_node_right->SetLeft(left->GetRight());
+			return_node->SetLeft(return_node_left);
+			return_node->SetRight(return_node_right);
+			return return_node;
+		} else {
+			return this;
+		}
+	} else if (symbol == '+') {
+		if ((left->symbol == '~') && (right->symbol == '~')) {
+			LogicNode* return_node = new LogicNode('~');
+			LogicNode* return_node_neg = new LogicNode('*');
+			return_node_neg->SetLeft(left->GetLeft());
+			return_node_neg->SetRight(right->GetLeft());
+			return_node->SetLeft(return_node_neg);
+			return return_node;
+		} else {
+			return this;
+		}
+	} else if (symbol == '*') {
+		if ((left->symbol == '~') && (right->symbol == '~')) {
+			LogicNode* return_node = new LogicNode('~');
+			LogicNode* return_node_neg = new LogicNode('+');
+			return_node_neg->SetLeft(left->GetLeft());
+			return_node_neg->SetRight(right->GetLeft());
+			return_node->SetLeft(return_node_neg);
+			return return_node;
+		} else {
+			return this;
+		}
+	} else {
+		return this;
+	}
+}
+
+LogicNode* LogicNode::Distribute(char dist_symbol, LogicNode* dist_left) {
+	if (right != nullptr) {
+		LogicNode* return_node = new LogicNode(symbol);
+		LogicNode* return_left = new LogicNode(dist_symbol);
+		LogicNode* return_right = new LogicNode(dist_symbol);
+		return_left->SetLeft(dist_left);
+		return_left->SetRight(left);
+		return_right->SetLeft(dist_left);
+		return_right->SetRight(right);
+		return_node->SetLeft(return_left);
+		return_node->SetRight(return_right);
+		return return_node;
+	} else {
+		LogicNode* return_node = new LogicNode(dist_symbol);
+		return_node->SetLeft(dist_left);
+		return_node->SetRight(this);
+		return return_node;
+	}
+}
+
+char* LogicNode::GetString() {
+	char* left_string  = new char[1];
+	left_string[0] = '\0';
+	char* right_string = new char[1];
+	right_string[0] = '\0';
+
+	if (left != nullptr) {
+		left_string = left->GetString();
+	}
+	if (right != nullptr) {
+		right_string = right->GetString();
+	}
+
+	char* output_string = new char[std::strlen(left_string)+std::strlen(right_string)+2];
+	output_string[std::strlen(left_string)+std::strlen(right_string)+1] = '\0';
+	output_string[std::strlen(left_string)] = symbol;
+	std::strcpy(output_string, left_string);
+	std::strcpy(output_string+std::strlen(left_string)+1, right_string);
+	
+	return output_string;
 }

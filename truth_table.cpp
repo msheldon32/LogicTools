@@ -20,6 +20,9 @@ int main(int num_args, char** args) {
 		LogicNode *parse_tree = ParseString(logic_string);
 	
 		ElementaryProposition*  props = GetPropositions(parse_tree);
+		if (props == nullptr) {
+			props = new ElementaryProposition('A', false);
+		}
 		ElementaryProposition** lattice = props->Lattice();
 	
 		PrintHeader(props, parse_tree);
