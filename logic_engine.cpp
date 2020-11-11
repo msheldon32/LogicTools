@@ -130,6 +130,10 @@ void ElementaryProposition::MergeList(ElementaryProposition* new_list) {
 	}
 }
 
+bool ElementaryProposition::operator==(ElementaryProposition comparison) {
+	return (symbol == comparison.symbol) && (*next == *(comparison.next));
+}
+
 LogicNode::LogicNode(char init_symbol) {
 	left = nullptr;
 	right = nullptr;
@@ -170,6 +174,7 @@ bool LogicNode::Evaluate(ElementaryProposition* first_prop) {
 	 *   Recursively evaluate each node in the tree, accoridng to the truth values
 	 *   	supplied by first_prop, and it's successors.
 	 */
+
 	if (symbol == '0') {
 		return false;
 	} else if (symbol == '1') {
@@ -179,7 +184,7 @@ bool LogicNode::Evaluate(ElementaryProposition* first_prop) {
 
 	if (first_prop->FindSymbol(symbol)) {
 		// symbol represents an elementary proposition
-		return first_prop->FindSymbol(symbol);
+		return first_prop->GetValueFromSymbol(symbol);
 	}
 	bool bleft  = left->Evaluate(first_prop);
 

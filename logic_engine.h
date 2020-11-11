@@ -22,6 +22,8 @@ public:
 	ElementaryProposition* Copy();
 
 	void MergeList(ElementaryProposition* new_list);
+
+	bool operator==(ElementaryProposition comparison);
 };
 
 class LogicNode {
@@ -45,7 +47,12 @@ public:
 
 	char GetSymbol();
 
+	char* GetString();
+
 	bool Evaluate(ElementaryProposition* first_prop);
+
+	LogicNode* DemorganDual();
+	LogicNode* Distribute(char dist_symbol, LogicNode* dist_left);
 };
 
 #endif
