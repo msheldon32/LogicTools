@@ -13,13 +13,16 @@ public:
 	bool truth_value;
 	char symbol;
 
-	ElementaryProposition(char init_symbol, bool init_truth_value, ElementaryProposition* init_next=nullptr);
+	ElementaryProposition(char init_symbol, bool init_truth_value, 
+			      ElementaryProposition* init_next=nullptr);
+	ElementaryProposition(const ElementaryProposition& other);
 	~ElementaryProposition();
+
+	ElementaryProposition& operator=(const ElementaryProposition& other);
 
 	bool GetValueFromSymbol(char search_symbol);
 	bool FindSymbol(char search_symbol);
 	ElementaryProposition** Lattice();
-	ElementaryProposition* Copy();
 
 	void MergeList(ElementaryProposition* new_list);
 
@@ -37,7 +40,10 @@ private:
 	LogicNode* right;
 public:
 	LogicNode(char init_symbol);
+	LogicNode(const LogicNode& other);
 	~LogicNode();
+
+	LogicNode& operator= (const LogicNode& other);
 
 	void SetLeft(LogicNode* init_left);
 	void SetRight(LogicNode* init_right);

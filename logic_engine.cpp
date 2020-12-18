@@ -24,6 +24,28 @@ ElementaryProposition::~ElementaryProposition() {
 	delete next;
 }
 
+ElementaryProposition::ElementaryProposition(const ElementaryProposition& other) {
+	if (other.next != nullptr) {
+		next = new ElementaryProposition(*(other.next));
+	} else {
+		next = nullptr;
+	}
+	truth_value = other.truth_value;
+	symbol = other.symbol;
+}
+
+ElementaryProposition& ElementaryProposition::operator=(const ElementaryProposition& other) {
+	if (other.next != nullptr) {
+		next = new ElementaryProposition(*(other.next));
+	} else {
+		next = nullptr;
+	}
+	truth_value = other.truth_value;
+	symbol = other.symbol;
+
+	return *this;
+}
+
 bool ElementaryProposition::GetValueFromSymbol(char search_symbol) {
 	/*
 	 *   Searches through the linked list to find the truth value
@@ -48,16 +70,6 @@ bool ElementaryProposition::FindSymbol(char search_symbol) {
 	}
 
 	return next->FindSymbol(search_symbol);
-}
-
-ElementaryProposition* ElementaryProposition::Copy() {
-	/*
-	 *   Recursively copies every elementary proposition.
-	 */
-	if (next == nullptr) {
-		return new ElementaryProposition(symbol, truth_value);
-	}
-	return new ElementaryProposition(symbol, truth_value, next->Copy());
 }
 
 ElementaryProposition** ElementaryProposition::Lattice() {
@@ -86,12 +98,14 @@ ElementaryProposition** ElementaryProposition::Lattice() {
 
 	// duplicate this lattice, one copy with the current proposition as false, and the other 
 	//    with it as true
-	ElementaryProposition** out_array = new ElementaryProposition* [(cur_lattice_depth*2)+1];
+	ElementaryProposition** out_array = new ElementaryProposition*[(cur_lattice_depth*2)+1];
 	out_array[(cur_lattice_depth*2)] = nullptr;
 	int midpoint = cur_lattice_depth;
 	for (int i = 0; i < cur_lattice_depth; i++) {
-		out_array[i] = new ElementaryProposition(symbol, false, next_lattice[i]->Copy());
-		out_array[midpoint+i] = new ElementaryProposition(symbol, true, next_lattice[i]->Copy());
+		out_array[i] = new ElementaryProposition(symbol, false, 
+				    new ElementaryProposition(*next_lattice[i]));
+		out_array[midpoint+i] = new ElementaryProposition(symbol, true, 
+				    new ElementaryProposition(*next_lattice[i]));
 	}
 
 	return out_array;
@@ -141,12 +155,42 @@ LogicNode::LogicNode(char init_symbol) {
 }
 
 LogicNode::~LogicNode() {
-	if (left != nullptr) {
-		delete left;
+	delete left;
+	delete right;
+}
+
+LogicNode::LogicNode(const LogicNode& other) {
+	if (other.left != nullptr) {
+		left = new LogicNode(*(other.left));
+	} else {
+		left = nullptr;
 	}
-	if (right != nullptr) {
-	       	delete right;
+
+	if (other.right != nullptr) {
+		right = new LogicNode(*(other.right));
+	} else {
+		right = nullptr;
 	}
+
+	symbol = other.symbol;
+}
+
+LogicNode& LogicNode::operator=(const LogicNode& other) {
+	if (other.left != nullptr) {
+		left = new LogicNode(*(other.left));
+	} else {
+		left = nullptr;
+	}
+
+	if (other.right != nullptr) {
+		right = new LogicNode(*(other.right));
+	} else {
+		right = nullptr;
+	}
+
+	symbol = other.symbol;
+
+	return *this;
 }
 
 void LogicNode::SetLeft(LogicNode* init_left) {

@@ -24,14 +24,17 @@ int main(int num_args, char** args) {
 			props = new ElementaryProposition('A', false);
 		}
 		ElementaryProposition** lattice = props->Lattice();
+		ElementaryProposition** lattice_orig = lattice;
 	
 		PrintHeader(props, parse_tree);
 	
 		while (*lattice != nullptr) {
 			PrintRow(*lattice, parse_tree);
+			delete *lattice;
 			lattice++;
 		}
 
+		delete[] lattice_orig;
 		delete props;
 		delete parse_tree;
 	}
